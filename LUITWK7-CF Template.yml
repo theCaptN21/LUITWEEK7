@@ -12,7 +12,7 @@ Resources:
         - Key: Name
           Value: Join 
             - ''
-            - - Ref 'AWS::StackName'
+            - - !Ref 'AWS::StackName'
               - '-VPC'
     
   # Creating an InternetGateway
@@ -20,18 +20,18 @@ Resources:
     Type: 'AWS::EC2::InternetGateway'
     DependsOn: VPC
 
-  # Attach theInternet Gateway to Your VPC
+  # Attach the Internet Gateway to Your VPC
   InternetGatewayAttachment:
     Type: 'AWS::EC2::VPCGatewayAttachment'
     Properties:
-      VpcId: Ref VPC
-      InternetGatewayId: Ref InternetGateway
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
     
   # Create Your First Public Subnet
   PublicSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: Ref VPC
+      VpcId: !Ref VPC
       AvailabilityZone: Select [0, !GetAZs '']
       CidrBlock: 10.10.1.0/24
       MapPublicIpOnLaunch: true
@@ -40,7 +40,7 @@ Resources:
   PublicSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: Ref VPC
+      VpcId: !Ref VPC
       AvailabilityZone: Select [0, !GetAZs '']
       CidrBlock: 10.10.2.0/24
       MapPublicIpOnLaunch: true 
@@ -49,7 +49,7 @@ Resources:
   PublicSubnet3:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: Ref VPC
+      VpcId: !Ref VPC
       AvailabilityZone: Select [0, !GetAZs '']
       CidrBlock: 10.10.3.0/24
       MapPublicIpOnLaunch: true
@@ -58,7 +58,7 @@ Resources:
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: Ref VPC
+      VpcId: !Ref VPC
 
   # Create Your PublicRoute
   PublicRoute:
@@ -66,28 +66,28 @@ Resources:
     Properties:
       RouteTableId: Ref PublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: Ref InternetGateway
+      GatewayId: !Ref InternetGateway
 
   # Associate Your First Public Subnet
   PublicSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: Ref PublicRouteTable
-      SubnetId: Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
 
   # Associate Your Second Public Subnet
   PublicSubnet2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: Ref PublicRouteTable
-      SubnetId: Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
 
   # Associate Your Third Public Subnet
   PublicSubnet3RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: Ref PublicRouteTable
-      SubnetId: Ref PublicSubnet3
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet3
   
   # Create Your AutoScaling Group
   AutoScalingGroup:
@@ -95,14 +95,14 @@ Resources:
     Properties:
       LaunchTemplate:
         LaunchTemplateId: Ref LaunchTemplate
-        Version: GetAtt LaunchTemplate.LatestVersionNumber
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
       MaxSize: '5'
       MinSize: '2'
       DesiredCapacity: '2'
       VPCZoneIdentifier: 
-        - Ref PublicSubnet1
-        - Ref PublicSubnet2
-        - Ref PublicSubnet3
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+        - !Ref PublicSubnet3
       MetricsCollection:
         - Granularity: 1Minute
   
@@ -111,7 +111,7 @@ Resources:
     Type: 'AWS::AutoScaling::ScalingPolicy'
     Properties:
       AdjustmentType: ChangeInCapacity
-      AutoScalingGroupName: Ref AutoScalingGroup
+      AutoScalingGroupName: !Ref AutoScalingGroup
       ScalingAdjustment: '1'
    
   # CPUALARMHIGH
@@ -124,7 +124,7 @@ Resources:
       AlarmDescription: Trigger An Alarm if the CPU usage goes higher than 50%
       Period: '60'
       AlarmActions:
-        - Ref ScalingPolicyWk7
+        - !Ref ScalingPolicyWk7
       Namespace: AWS/EC2
       Dimensions:
         - Name: AutoScalingGroupName
@@ -137,7 +137,7 @@ Resources:
   ApplicationLoadBalancer : 
     Type : 'AWS::ElasticLoadBalancingV2::LoadBalancer'
     Properties : 
-      Subnets : Ref Subnets
+      Subnets : !Ref Subnets
       
   # Create an ALB Target Group
   ALBTargetGroup : 
@@ -149,7 +149,7 @@ Resources:
       Port : '80'
       Protocol : HTTP
       UnhealthyThresholdCount : '5'
-      VpcId : Ref VpcId
+      VpcId : !Ref VpcId
       
  # Create Your Instance Security Group
   InstanceSecurityGroup:
@@ -167,7 +167,7 @@ Resources:
           SourceSecurityGroupId : {Fn::Select : [0, {Fn::GetAtt : [ApplicationLoadBalancer, SecurityGroups]}]}
           
   # Get Your VPC ID
-  VpcId : Ref VPC
+  VpcId : !Ref VPC
   
   # Create Your Launch Template
   LaunchTemplate:
@@ -180,7 +180,7 @@ Resources:
             AssociatePublicIpAddress: true
             DeleteOnTermination: true
             Groups:
-              - Ref InstanceSecurityGroup
+              - !Ref InstanceSecurityGroup
         ImageId: ami-09d3b3274b6c5d4aa
         InstanceType: t2.micro
         UserData:
